@@ -11,6 +11,8 @@ root.title('Login')
 
 def login():
     # config
+    global domain;
+    global path_pic;
     domain = "http://127.0.0.1:8000/"
     path_pic = txt_path.get()
     email = txt_username.get()
@@ -23,18 +25,18 @@ def login():
         tkinter.messagebox.showinfo("แจ้งเตือน","รหัสไม่ถูกต้องหรือมีข้อผิดพลาดบางอย่าง")
     token_str = token_object['token'].split('|')
     if("token" in token_object):
-        myLabel3 = Label(root,text="ล็อกอินสำเร็จ").grid(row=4,column=0);
+        myLabel3 = Label(root,text="ล็อกอินสำเร็จ โปรแกรมกำลังทำงาน...").grid(row=4,column=0);
         
-    authorization_token = "Bearer " + token_str[1]
+    global authorization_token 
+    authorization_token = "Bearer " + token_str[1];
+    task();
+
+def task():
     response2 = requests.get(f"{domain}api/config", headers={
                              "Content-Type": "application/json", "Authorization": authorization_token})
     data_json2 = response2.json()
     print('config')
     print(data_json2)
-    #while
-    process(authorization_token,data_json2,domain,path_pic)
-
-def process(authorization_token,data_json2,domain,path_pic):
     if(data_json2['data']['status'] == 1):
         print('Status: Service is opened')
         position_textbox_password = pyautogui.locateOnScreen(
@@ -199,9 +201,10 @@ def process(authorization_token,data_json2,domain,path_pic):
         position_logout = pyautogui.locateOnScreen('pic/logout.PNG')
         pyautogui.moveTo(position_logout)
         pyautogui.click(position_logout)
-
+    root.after(2000, task)  # reschedule event in 2 seconds
 
     
+# root.after(2000, task)
 txt_username = StringVar()
 txt_password = StringVar()
 txt_path = StringVar(value='C:\\Users\\sumead007\\Desktop\\autoclick\\pic_chat')
@@ -213,9 +216,5 @@ myLabel2 =Label(root,text="password: ").grid(row=1,column=0);
 myLabel3 =Label(root,text="path รูปภาพ").grid(row=2,column=0);
 btn1 = Button(root,text="ล็อกอิน", command=login).grid(row=1,column=2);
 root.geometry("400x100+100+100")
-
-
-
-
 root.mainloop()
 
