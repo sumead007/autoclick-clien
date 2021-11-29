@@ -1,3 +1,4 @@
+##current
 from tkinter import *
 import tkinter.messagebox
 import json
@@ -13,7 +14,7 @@ def login():
     # config
     global domain;
     global path_pic;
-    domain = "http://127.0.0.1:8000/"
+    domain = "https://bot.eventmoney.site/"
     path_pic = txt_path.get()
     email = txt_username.get()
     password = txt_password.get()
@@ -29,7 +30,9 @@ def login():
         
     global authorization_token 
     authorization_token = "Bearer " + token_str[1];
-    task();
+    while True:
+        task();
+        time.sleep(0.002)
 
 def task():
     response2 = requests.get(f"{domain}api/config", headers={
@@ -201,7 +204,7 @@ def task():
         position_logout = pyautogui.locateOnScreen('pic/logout.PNG')
         pyautogui.moveTo(position_logout)
         pyautogui.click(position_logout)
-    root.after(2000, task)  # reschedule event in 2 seconds
+#     root.after(2000, task)  # reschedule event in 2 seconds
 
     
 # root.after(2000, task)
@@ -217,4 +220,4 @@ myLabel3 =Label(root,text="path รูปภาพ").grid(row=2,column=0);
 btn1 = Button(root,text="ล็อกอิน", command=login).grid(row=1,column=2);
 root.geometry("400x100+100+100")
 root.mainloop()
-
+#https://stackoverflow.com/questions/459083/how-do-you-run-your-own-code-alongside-tkinters-event-loop
