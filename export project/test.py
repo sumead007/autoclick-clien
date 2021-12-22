@@ -1,6 +1,7 @@
 ##current
 from tkinter import *
 import tkinter.messagebox
+from json import dumps
 import json
 from urllib.request import urlopen
 import pyautogui
@@ -8,6 +9,10 @@ import time
 import requests
 import subprocess
 import pyperclip
+from base64 import b64encode
+import pathlib
+import os
+from datetime import datetime
 
 
 try:
@@ -33,10 +38,12 @@ try:
             myLabel3 = Label(root,text="โปรแกรมทำงานเสร็จสิ้น").grid(row=4,column=0);
 
         global authorization_token 
+#         global email
+#         global password
         authorization_token = "Bearer " + token_str[1];
 #         while True:
         task();
-
+        
 
     def task():
         while True:
@@ -45,17 +52,20 @@ try:
             data_json2 = response2.json()
             print('config')
             print(data_json2)
+            requests.put(f"{domain}api/config/1", json=({"action":0}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+            
             if(data_json2['data']['status'] == 1):
                 print('Status: Service is opened')
                 
-                
-                    
+                #กันล็อกอินซั้า
+#                 email
+#                 password
                 position_textbox_password = pyautogui.locateOnScreen(
                     'pic/textbox_password.PNG')
-                pyautogui.moveTo(position_textbox_password)
-                pyautogui.click(position_textbox_password)
-                time.sleep(1)
+                pyautogui.moveTo(position_textbox_password)         
                 if position_textbox_password != None:
+                    pyautogui.click(position_textbox_password)
+                    time.sleep(1)
     #                 pyautogui.write(data_json2['data']['password'])
                     pyperclip.copy(data_json2['data']['password'])
                     pyautogui.hotkey('ctrl', 'v')
@@ -67,19 +77,61 @@ try:
                     pyperclip.copy(data_json2['data']['user_login'])
                     pyautogui.hotkey('ctrl', 'v')
                     time.sleep(1)
-                    position_textbox_btnlogin = pyautogui.locateOnScreen(
+                position_textbox_btnlogin = pyautogui.locateOnScreen(
                         'pic/btnlogin.PNG')
+                if(position_textbox_btnlogin != None):
                     pyautogui.moveTo(position_textbox_btnlogin)
                     pyautogui.click(position_textbox_btnlogin)
                     
                     #ถ้าให้ยืนยันตัวตน (ลบคอมเม้น)
+                position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
+                if(position_otp != None ):
+                    #รอotp
+                    #saveรูปที่แคป
+                    now = datetime.now()
+                    timestamp = datetime.timestamp(now)
+                    name = str(int(timestamp));
                     position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
-                    if(position_otp != None ):
-                        print("Waiting OTP 1 Min.")
-                        time.sleep(60)
-                    else:
-                        print("Waiting 30 second")
-                        time.sleep(30)
+                    [left, top, width, height] = position_otp
+                    try:
+                        os.remove(data_json2['data']['image_screen_shot'])
+                    except Exception:
+                        pass
+                    myScreenshot = pyautogui.screenshot(region=(left, top, width, height+80));
+                    myScreenshot.save(r'service/screen_shot/'+name+'.png');
+                    time.sleep(0.5)
+
+                        
+                        #นำภาพไปเข้าเป็นbase64 แล้วอัพขึ้นเซิฟ
+                    ENCODING = 'utf-8';
+                    IMAGE_NAME = f'service/screen_shot/{name}.png';
+                    with open(IMAGE_NAME, 'rb') as open_file:
+                        byte_content = open_file.read()
+                    base64_bytes = b64encode(byte_content)
+                    base64_string = base64_bytes.decode(ENCODING)                  
+                    raw_data = base64_string                 
+                    json_data = dumps(raw_data, indent=2)
+                    requests.put(f"{domain}api/config/1", json=({"base64": json_data,"name":f"{name}.png"}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                    chk_turn_off = True;
+                    
+                    while position_otp != None and chk_turn_off:
+                        position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
+                        requests.put(f"{domain}api/config/1", json=({"action":1}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                        
+                        print("Waiting OTP")
+                        
+                        response2 = requests.get(f"{domain}api/config", headers={
+                                    "Content-Type": "application/json", "Authorization": authorization_token})
+                        data_json2 = response2.json()
+                        if(data_json2['data']['status'] != 1):
+                            chk_turn_off = False;
+                            print("Trun Off")
+                            
+                        time.sleep(2)
+                        # time.sleep(180)
+                else:
+                    print("Waiting a second")
+                    time.sleep(2)
                         
                 #เช็คล็อกอิน (ลบคอมเม้น)
                 position_more = pyautogui.locateOnScreen('pic/more.PNG')
@@ -88,8 +140,8 @@ try:
                 more_2click = lambda_click(position_more)
                 if(more_2click == None):
                     print("Login failed")
+                    requests.put(f"{domain}api/config/1", json=({"action":4}), headers={"Content-Type": "application/json","Authorization":authorization_token})
                     continue;
-
 
                 # เรียกข้อมูล
                 response = requests.get(f"{domain}api/addline", headers={
@@ -105,6 +157,8 @@ try:
                 
                 data_arr = []
                 print('Process Start....')
+                requests.put(f"{domain}api/config/1", json=({"action":2}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                
                 for i in data_json['data']:
                     print('userID: ')
                     print(i['user_id'])
@@ -280,8 +334,8 @@ try:
                         pyautogui.click(position_lineaccpt)
                     requests.put(f'{domain}api/addline/' +
                                 str(i['id']), headers={"Content-Type": "application/json", "Authorization": authorization_token})
-                    time.sleep(5)
-
+                    time.sleep(2)
+                requests.put(f"{domain}api/config/1", json=({"action":3}), headers={"Content-Type": "application/json","Authorization":authorization_token})
                 # print(data_arr)
             else:    
                 # print('ปิด')
@@ -289,25 +343,49 @@ try:
     #             position_more = pyautogui.locateOnScreen('pic/more.PNG')
     #             pyautogui.moveTo(position_more)
     #             pyautogui.click(position_more)
+    #ถ้าเจอ dialog otp ให้ออก
+                position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
+                if(position_otp != None ):
+                    pyautogui.hotkey('esc')
+                    time.sleep(1)
+                    pyautogui.hotkey('enter')
+                    
+    #เคลีย text box
+                position_textbox_btnlogin = pyautogui.locateOnScreen('pic/btnlogin.PNG')
+                if(position_textbox_btnlogin != None ):
+                    pyautogui.moveTo(position_textbox_btnlogin)
+                    pyautogui.move(0, -50)
+                    time.sleep(1)
+                    pyautogui.click()
+                    pyautogui.hotkey('ctrl', 'a')
+                    pyautogui.hotkey('backspace')
+                    pyautogui.move(0, -50)
+                    time.sleep(1)
+                    pyautogui.click()
+                    pyautogui.hotkey('ctrl', 'a')
+                    time.sleep(0.5)
+                    pyautogui.hotkey('backspace')
+                
                 position_more = pyautogui.locateOnScreen('pic/more.PNG')
                 position_more2 = pyautogui.locateOnScreen('pic/more2.PNG')
                 lambda_click = lambda x: position_more2 if position_more == None else position_more
                 more_2click = lambda_click(position_more)
-                pyautogui.moveTo(more_2click)
-                pyautogui.click(more_2click)
-                time.sleep(1)
+                if(more_2click):
+                    pyautogui.moveTo(more_2click)
+                    pyautogui.click(more_2click)
+                    time.sleep(1)
                 
-                position_logout = pyautogui.locateOnScreen('pic/logout.PNG')
-                pyautogui.moveTo(position_logout)
-                pyautogui.click(position_logout)
+                    position_logout = pyautogui.locateOnScreen('pic/logout.PNG')
+                    pyautogui.moveTo(position_logout)
+                    pyautogui.click(position_logout)
         #     root.after(2000, task)  # reschedule event in 2 seconds
-                time.sleep(0.002)
+            time.sleep(1)
 
 
     # root.after(2000, task)
     txt_username = StringVar()
     txt_password = StringVar()
-    txt_path = StringVar(value='C:\\Users\\sumead007\\Desktop\\autoclick\\pic_chat')
+    txt_path = StringVar(value=f"{pathlib.Path().absolute()}\pic_chat")
     my_username = Entry(root, textvariable=txt_username).grid(row=0,column=1);
     my_password = Entry(root, textvariable=txt_password).grid(row=1,column=1);
     my_path = Entry(root, textvariable=txt_path,width="25").grid(row=2,column=1);
@@ -318,5 +396,5 @@ try:
     root.geometry("400x100+100+100")
     root.mainloop()
     #https://stackoverflow.com/questions/459083/how-do-you-run-your-own-code-alongside-tkinters-event-loop
-except:
-    pass
+except Exception:
+    pass;
