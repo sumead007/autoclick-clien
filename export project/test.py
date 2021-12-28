@@ -11,15 +11,15 @@ from base64 import b64encode
 import pathlib
 import os
 from datetime import datetime
-
+import random
 
 def task():
     while True:
             
         response2 = requests.get(f"{domain}api/config", headers={
                                     "Content-Type": "application/json", "Authorization": authorization_token})
-            
         data_json2 = response2.json()
+        time.sleep(1)
         print('config')
         print(data_json2)
         requests.put(f"{domain}api/config/1", json=({"action":0}), headers={"Content-Type": "application/json","Authorization":authorization_token})
@@ -97,13 +97,14 @@ def task():
                         chk_turn_off = False;
                         print("Trun Off")
                             
-                    time.sleep(2)
+                    time.sleep(3)
                     # time.sleep(180)
             else:
                 print("Waiting a second")
-                time.sleep(2)
+                time.sleep(3)
                         
             #เช็คล็อกอิน (ลบคอมเม้น)
+            time.sleep(3)
             position_more = pyautogui.locateOnScreen('pic/more.PNG')
             position_more2 = pyautogui.locateOnScreen('pic/more2.PNG')
             lambda_click = lambda x: position_more2 if position_more == None else position_more
@@ -111,6 +112,7 @@ def task():
             if(more_2click == None):
                 print("Login failed")
                 requests.put(f"{domain}api/config/1", json=({"action":4}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                time.sleep(3)  
                 continue;
 
                 # เรียกข้อมูล
@@ -128,7 +130,9 @@ def task():
             data_arr = []
             print('Process Start....')
             requests.put(f"{domain}api/config/1", json=({"action":2}), headers={"Content-Type": "application/json","Authorization":authorization_token})
-                
+            
+            #เริ่มแอต
+            count_num = 0
             for i in data_json['data']:
                 print('userID: ')
                 print(i['user_id'])
@@ -216,10 +220,13 @@ def task():
                             
                         pyautogui.hotkey('ctrl', 'a')
                         time.sleep(1)
-                            
-                        pyperclip.copy(i['user_id'])
+                        
+                        if(i['type'] == '1'):
+                            pyperclip.copy(i['user_tel'])
+                        else:
+                            pyperclip.copy(i['user_id'])
+                                                    
                         pyautogui.hotkey('ctrl', 'v')
-                    
                         pyautogui.hotkey('enter')
                         time.sleep(1)
                             
@@ -302,6 +309,11 @@ def task():
                         # ไม่เจอ
                     pyautogui.moveTo(position_lineaccpt)
                     pyautogui.click(position_lineaccpt)
+#                     time_cant_find = random.randint(20, 30)
+                    time_cant_find = 60
+                    print(f"Not found. waiting time: {time_cant_find} s")
+                    time.sleep(time_cant_find)
+                    
                 requests.put(f'{domain}api/addline/' +
                                 str(i['id']), headers={"Content-Type": "application/json", "Authorization": authorization_token})
                 
@@ -312,10 +324,18 @@ def task():
                 if(data_json2['data']['status'] == 0):
                     data_json['data'] = [];
                     break;
-                time.sleep(2)
+                count_num += 1
+                if count_num >= 10:
+                    count_num = 0
+                    time_rand = random.randint(50, 60)
+                    print(f"group is end. waiting time: {time_rand} s")
+                    time.sleep(time_rand)
+                    continue;
+                time_sent = random.randint(20, 30)
+                print(f"sent is end. waiting time: {time_sent} s")
+                time.sleep(time_sent)
                 #จบการทำงาน
-                
-                
+                                
             requests.put(f"{domain}api/config/1", json=({"action":3}), headers={"Content-Type": "application/json","Authorization":authorization_token})
                 # print(data_arr)
         else:    
@@ -387,7 +407,10 @@ authorization_token = "Bearer " + token_str[1];
     
 #        while True:
 # print(authorization_token)
-task();
+try:
+    task();
+except ValueError:
+    pass;
     
     
       
