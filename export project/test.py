@@ -28,29 +28,30 @@ def task():
             
         response2 = requests.get(f"{domain}api/config", headers={
                                     "Content-Type": "application/json", "Authorization": authorization_token})
-        data_json2 = response2.json()
         time.sleep(1)
+        data_json2 = response2.json()
         print('config')
         print(data_json2)
 
         response3 = requests.get(f"{domain}api/line_login", headers={
                                     "Content-Type": "application/json", "Authorization": authorization_token})
+        time.sleep(2)
         data_json3 = response3.json()
         print('line_login')
         print(data_json3)
-        time.sleep(2)
         
         # เรียกข้อมูล
         response = requests.get(f"{domain}api/addline", headers={
                                             "Content-Type": "application/json", "Authorization": authorization_token})
+        time.sleep(2)
         response.encoding = 'ISO-8859-1'
         data_json = response.json()
 
         response = requests.get(f"{domain}api/message", headers={
                                             "Content-Type": "application/json", "Authorization": authorization_token})
+        time.sleep(2)
         response.encoding = 'ISO-8859-1'
         data_message_json = response.json()
-        time.sleep(2)
                 
         
         requests.put(f"{domain}api/config/1", json=({"action":0}), headers={"Content-Type": "application/json","Authorization":authorization_token})
@@ -81,6 +82,7 @@ def task():
                 #เช็คว่าปิดยัง
                 response2 = requests.get(f"{domain}api/config", headers={
                                         "Content-Type": "application/json", "Authorization": authorization_token})
+                time.sleep(1)
                 data_json2 = response2.json()
                 if(data_json2['data']['status'] == 0):
                     break;
@@ -143,15 +145,15 @@ def task():
                     raw_data = base64_string                 
                     json_data = dumps(raw_data, indent=2)
                     requests.put(f"{domain}api/config/1", json=({"base64": json_data,"name":f"{name}.png"}), headers={"Content-Type": "application/json","Authorization":authorization_token})
-
+                    
                     #line notify
                     message_line = f"กำลังรอ OTP ของไอดี {data_user['user_login']}"
                     line_response = requests.post(f"{domain}api/line_notify", headers={
                                             "Content-Type": "application/json", "Authorization": authorization_token}, 
                                                           json=({"message":message_line}))
+                    time.sleep(1)
                     data_json_line = line_response.json()
                     print(f"line notify status: {data_json_line}")
-                    
                     time.sleep(3)
                     position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
 
@@ -163,6 +165,7 @@ def task():
 
                         response2 = requests.get(f"{domain}api/config", headers={
                                         "Content-Type": "application/json", "Authorization": authorization_token})
+                        time.sleep(1)
                         data_json2 = response2.json()
 
 
@@ -208,14 +211,15 @@ def task():
                          # เรียกข้อมูล
                 response = requests.get(f"{domain}api/addline", headers={
                                                     "Content-Type": "application/json", "Authorization": authorization_token})
+                time.sleep(2)
                 response.encoding = 'ISO-8859-1'
                 data_json = response.json()
 
                 response = requests.get(f"{domain}api/message", headers={
                                                     "Content-Type": "application/json", "Authorization": authorization_token})
+                time.sleep(2)
                 response.encoding = 'ISO-8859-1'
                 data_message_json = response.json()
-                time.sleep(2)
 
                 data_arr = []
                 print('Process Start....')
@@ -444,6 +448,7 @@ def task():
                     #เช็คว่าปิดยัง
                     response2 = requests.get(f"{domain}api/config", headers={
                                         "Content-Type": "application/json", "Authorization": authorization_token})
+                    time.sleep(1)   
                     data_json2 = response2.json()
                     if(data_json2['data']['status'] == 0):
                         data_json['data'] = [];
@@ -464,6 +469,7 @@ def task():
                 #เช็คว่าปิดยัง
                 response2 = requests.get(f"{domain}api/config", headers={
                                         "Content-Type": "application/json", "Authorization": authorization_token})
+                time.sleep(1)
                 data_json2 = response2.json()
                 if(data_json2['data']['status'] == 0):
                     break;
