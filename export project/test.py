@@ -224,12 +224,21 @@ def task():
                 data_arr = []
                 print('Process Start....')
                 requests.put(f"{domain}api/config/1", json=({"action":2}), headers={"Content-Type": "application/json","Authorization":authorization_token})
-
+                
+                if (len(data_json['data'])<=0):
+                    print("addline: 0")
+                    break;
                 #เริ่มแอต
                 count_num = 0
                 for i in data_json['data']:
-                    print('userID: ')
-                    print(i['user_id'])
+                    user_seard = ""
+                    if i['type'] == '1': 
+                        user_seard = i['user_tel']
+                    else:
+                        user_seard = i['user_id']
+    
+                    print(f'userID: {user_seard}')
+#                     print(f"userseard: {i}")
 
                         #กลิกปุ้มแอต
                     position_add = pyautogui.locateOnScreen('pic/add.PNG')
@@ -269,7 +278,7 @@ def task():
                     time.sleep(1)
 
         #               pyautogui.write(i['user_id'])
-                    pyperclip.copy(i['user_id'])
+                    pyperclip.copy(user_seard)
                     pyautogui.hotkey('ctrl', 'v')
 
                     pyautogui.hotkey('enter')
@@ -315,11 +324,8 @@ def task():
                             pyautogui.hotkey('ctrl', 'a')
                             time.sleep(1)
 
-                            if(i['type'] == '1'):
-                                pyperclip.copy(i['user_tel'])
-                            else:
-                                pyperclip.copy(i['user_id'])
-
+                            
+                            pyperclip.copy(user_seard)
                             pyautogui.hotkey('ctrl', 'v')
                             pyautogui.hotkey('enter')
                             time.sleep(1)
