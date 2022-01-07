@@ -1,4 +1,4 @@
-##current only command has not a try catch
+##current only command has not a try catch2
 from json import dumps
 import json
 from urllib.request import urlopen
@@ -14,6 +14,7 @@ from datetime import datetime
 import random
 
 fail_login = 0
+fail_otp = 0;
 
 def set_globvar_to_one():
     global fail_login    # Needed to modify global copy of globvar
@@ -22,6 +23,14 @@ def set_globvar_to_one():
 def set_globvar_to_zero():
     global fail_login    # Needed to modify global copy of globvar
     fail_login = 0
+    #otp
+def set_glob_fail_otp_to_one():
+    global fail_otp    # Needed to modify global copy of globvar
+    fail_otp += 1
+    
+def set_glob_fail_otp_to_zero():
+    global fail_otp    # Needed to modify global copy of globvar
+    fail_otp = 0
     
 def task():
     while True:
@@ -39,6 +48,7 @@ def task():
         data_json3 = response3.json()
         print('line_login')
         print(data_json3)
+        
         
         # เรียกข้อมูล
         response = requests.get(f"{domain}api/addline", headers={
@@ -91,6 +101,8 @@ def task():
     #                 email
     #                 password
                 data_user = data_json3['data'][num_row];
+                num_add = data_json3['data'][num_row]['num_add'];
+                num_chat = data_json3['data'][num_row]['num_chat'];
                 print(f"login by {data_user['user_login']}")
                 position_textbox_password = pyautogui.locateOnScreen(
                         'pic/textbox_password.PNG')
@@ -231,13 +243,13 @@ def task():
                 #เริ่มแอต
                 count_num = 0
                 for i in data_json['data']:
-                    user_seard = ""
-                    if i['type'] == '1': 
-                        user_seard = i['user_tel']
-                    else:
-                        user_seard = i['user_id']
+#                     user_seard = ""
+#                     if i['type'] == '1': 
+#                         user_seard = i['user_tel']
+#                     else:
+#                         user_seard = i['user_id']
     
-                    print(f'userID: {user_seard}')
+#                     print(f'userID: {user_seard}')
 #                     print(f"userseard: {i}")
 
                         #กลิกปุ้มแอต
@@ -255,38 +267,160 @@ def task():
                     pyautogui.moveTo(position_serach_friend)
                     pyautogui.click(position_serach_friend)
                     time.sleep(1)
+                    
+                    
+                    #แอตไปกลับ
+                    row_id = i['id']#ใส่
+                    user_id = i['user_id'] #ใส่
+                    user_tel = i['user_tel'] #ใส่
+                    type_id_or_tel = i['type'] #ใส่
+                    # user_datas = [];
+                    # user_datas.append(user_tel);
+                    # user_datas.append(user_id);
+                    count_radio= 0
+                    while count_radio < 2:
+                    #     print(type_id_or_tel)
+                        #แอตเบอร์
+                        if type_id_or_tel == '1':
+                            user_data = user_tel
 
-        #เลือกว่าเป็นเบอร์ หรือid
-                    if(i['type'] == '1'):
-                        position_radio_line_phone = pyautogui.locateOnScreen(
-                                'pic/radio line phone.PNG')
-                        pyautogui.moveTo(position_radio_line_phone)
-                        pyautogui.click(position_radio_line_phone)
-                    else:
-                        position_radio_line_id = pyautogui.locateOnScreen(
-                                'pic/radio line id.PNG')
-                        pyautogui.moveTo(position_radio_line_id)
-                        pyautogui.click(position_radio_line_id)
+                            if user_data.isnumeric():
+                                position_radio_line_id = pyautogui.locateOnScreen(
+                                                                        'pic/radio line phone.PNG')
+                                pyautogui.moveTo(position_radio_line_id)
+                                time.sleep(1)
+                                pyautogui.click(position_radio_line_id)
+                                position_s = pyautogui.locateOnScreen('pic/s.PNG') 
+                                pyautogui.moveTo(position_s)
+                                time.sleep(1)
+                                pyautogui.click(position_s)
+                                pyautogui.hotkey('ctrl', 'a')
+                                time.sleep(1)
+                                pyperclip.copy(user_data)
+                                pyautogui.hotkey('ctrl', 'v')
+                                pyautogui.hotkey('enter')
+                                time.sleep(1)
+                                position_lineaddbtn = pyautogui.locateOnScreen('pic/addbtn.PNG')
+                                position_linebtnchat = pyautogui.locateOnScreen('pic/btnchat.PNG')
+                                if position_lineaddbtn != None or position_linebtnchat != None:
+                                    print(f'found this: {user_data}')
+                                    line_response = requests.post(f"{domain}api/addline", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"type":type_id_or_tel,"user_data":user_data}))
+                                    time.sleep(1)
+                                    requests.post(f"{domain}api/line_status", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"status":1}))
+                                    time.sleep(1)
+                                    break
 
-                        #กดปุ่มค้นหาเล็กๆ
-                    position_s = pyautogui.locateOnScreen('pic/s.PNG')
-                    pyautogui.moveTo(position_s)
-                    pyautogui.click(position_s)
-                    time.sleep(1)
+                            if user_data != None and user_data != "":
+                                position_radio_line_phone = pyautogui.locateOnScreen(
+                                                                'pic/radio line id.PNG')
+                                pyautogui.moveTo(position_radio_line_phone)
+                                pyautogui.click(position_radio_line_phone)
+                                time.sleep(1)   
+                                position_s = pyautogui.locateOnScreen('pic/s.PNG')   
+                                pyautogui.moveTo(position_s)
+                                time.sleep(1)
+                                pyautogui.click(position_s)
+                                pyautogui.hotkey('ctrl', 'a')
+                                time.sleep(1)
+                                pyperclip.copy(user_data)
+                                pyautogui.hotkey('ctrl', 'v')
+                                pyautogui.hotkey('enter')
+                                time.sleep(1)
+                                position_lineaddbtn = pyautogui.locateOnScreen('pic/addbtn.PNG')
+                                position_linebtnchat = pyautogui.locateOnScreen('pic/btnchat.PNG')
+                                if position_lineaddbtn != None or position_linebtnchat != None:
+                                    print(f'found this: {user_data}')
+                                    line_response = requests.post(f"{domain}api/addline", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"type":type_id_or_tel,"user_data":user_data}))
+                                    time.sleep(1)
+                                    requests.post(f"{domain}api/line_status", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"status":1}))
+                                    time.sleep(1)
+                                    break
+                            type_id_or_tel ='0'
+                            time.sleep(5)
+                        #แอตไอดี
+                        else:
 
-                    pyautogui.hotkey('ctrl', 'a')
-                    time.sleep(1)
+                            user_data = user_id
+                            if user_data != None and user_data != "":
+                                position_radio_line_id = pyautogui.locateOnScreen(
+                                                                        'pic/radio line id.PNG')
+                                pyautogui.moveTo(position_radio_line_id)
+                                time.sleep(1)
+                                pyautogui.click(position_radio_line_id)
+                                position_s = pyautogui.locateOnScreen('pic/s.PNG') 
+                                pyautogui.moveTo(position_s)
+                                time.sleep(1)
+                                pyautogui.click(position_s)
+                                pyautogui.hotkey('ctrl', 'a')
+                                time.sleep(1)
+                                pyperclip.copy(user_data)
+                                pyautogui.hotkey('ctrl', 'v')
+                                pyautogui.hotkey('enter')
+                                time.sleep(1)
+                                position_lineaddbtn = pyautogui.locateOnScreen('pic/addbtn.PNG')
+                                position_linebtnchat = pyautogui.locateOnScreen('pic/btnchat.PNG')
+                                if position_lineaddbtn != None or position_linebtnchat != None:
+                                    print(f'found this: {user_data}')
+                                    line_response = requests.post(f"{domain}api/addline", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"type":type_id_or_tel,"user_data":user_data}))
+                                    time.sleep(1)
+                                    requests.post(f"{domain}api/line_status", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"status":1}))
+                                    time.sleep(1)
+                                    break
 
-        #               pyautogui.write(i['user_id'])
-                    pyperclip.copy(user_seard)
-                    pyautogui.hotkey('ctrl', 'v')
-
-                    pyautogui.hotkey('enter')
-                    time.sleep(1)
+                            if user_data.isnumeric():
+                                position_radio_line_phone = pyautogui.locateOnScreen(
+                                                                'pic/radio line phone.PNG')
+                                pyautogui.moveTo(position_radio_line_phone)
+                                pyautogui.click(position_radio_line_phone)
+                                time.sleep(1)   
+                                position_s = pyautogui.locateOnScreen('pic/s.PNG')  
+                                pyautogui.moveTo(position_s)
+                                time.sleep(1)
+                                pyautogui.click(position_s)
+                                pyautogui.hotkey('ctrl', 'a')
+                                time.sleep(1)
+                                pyperclip.copy(user_data)
+                                pyautogui.hotkey('ctrl', 'v')
+                                pyautogui.hotkey('enter')
+                                time.sleep(1)
+                                position_lineaddbtn = pyautogui.locateOnScreen('pic/addbtn.PNG')
+                                position_linebtnchat = pyautogui.locateOnScreen('pic/btnchat.PNG')
+                                if position_lineaddbtn != None or position_linebtnchat != None:
+                                    print(f'found this: {user_data}')
+                                    line_response = requests.post(f"{domain}api/addline", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"type":type_id_or_tel,"user_data":user_data}))
+                                    time.sleep(1)
+                                    requests.post(f"{domain}api/line_status", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"status":1}))
+                                    time.sleep(1)
+                                    break
+                            type_id_or_tel ='1'
+                            time.sleep(5)
+                        count_radio+=1
+                        if count_radio == 2:   
+                            requests.post(f"{domain}api/line_status", headers={
+                                     "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                         json=({"id": row_id,"status":2}))
+                    
                     #    data_arr.append(i['id'])
                     position_lineaddbtn = pyautogui.locateOnScreen('pic/addbtn.PNG')
                     position_linebtnchat = pyautogui.locateOnScreen('pic/btnchat.PNG')
                     position_lineaccpt = pyautogui.locateOnScreen('pic/accpt.PNG')
+                    time.sleep(1)
 
                         # เจอ
                     if position_lineaddbtn != None or position_linebtnchat != None:
@@ -296,8 +430,21 @@ def task():
                             pyautogui.moveTo(position_lineaddbtn)
                             pyautogui.click(position_lineaddbtn)    
                             time.sleep(1)
+                            num_add += 1;
+                            print(f"num_add: {num_add}")
+                            requests.post(f"{domain}api/line_login_otp", 
+                                          json=(
+                                              {
+                                                "id":data_json3['data'][num_row]['id'],
+                                                "num_add":num_add,
+                                                "num_chat":num_chat
+                                              }
+                                          ), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                            time.sleep(1)
 
                                 #กลิกปุ้มแอต
+                            position_add = pyautogui.locateOnScreen('pic/add.PNG')
+                            position_add2 = pyautogui.locateOnScreen('pic/add2.PNG')
                             lambda_click = lambda x: position_add2 if position_add == None else position_add
                             position_2click = lambda_click(position_add)
                             pyautogui.moveTo(position_2click)
@@ -329,6 +476,7 @@ def task():
                             pyautogui.hotkey('ctrl', 'v')
                             pyautogui.hotkey('enter')
                             time.sleep(1)
+                        #จบแอตไปกลับ
 
 
                             # กดปุ้มแชท
@@ -374,7 +522,7 @@ def task():
                                     time.sleep(1)
 
                                         # เลื่อนไปทางซ้ายนิดหน่อย
-                                    pyautogui.move(100, 0)
+                                    pyautogui.move(120, 0)
                                     pyautogui.click()
                                     time.sleep(1)
 
@@ -404,6 +552,17 @@ def task():
                                     pyautogui.hotkey('enter')
                                     time.sleep(1)
                             pyautogui.hotkey('esc')
+                            num_chat += 1;
+                            requests.post(f"{domain}api/line_login_otp", 
+                                          json=(
+                                              {
+                                                "id":data_json3['data'][num_row]['id'],
+                                                "num_add":num_add,
+                                                "num_chat":num_chat,
+                                              } 
+                                          ), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                            time.sleep(1)
+                            requests.put(f"{domain}api/line_status/{i['id']}", json=({"status":1}), headers={"Content-Type": "application/json","Authorization":authorization_token})
                             time.sleep(1)
                     else:
                             # ไม่เจอ
@@ -483,7 +642,8 @@ def task():
             #จบการทำงาน                 
             requests.put(f"{domain}api/config/1", json=({"action":3}), headers={"Content-Type": "application/json","Authorization":authorization_token})
             # print(data_arr)
-        else:    
+        else:
+                 
                 # print('ปิด')
             print('Status: Service is closed or data login is zero')
     #             position_more = pyautogui.locateOnScreen('pic/more.PNG')
@@ -524,7 +684,116 @@ def task():
                 position_logout = pyautogui.locateOnScreen('pic/logout.PNG')
                 pyautogui.moveTo(position_logout)
                 pyautogui.click(position_logout)
-        #     root.after(2000, task)  # reschedule event in 2 seconds
+            
+            #ยืนยัน OTP
+            response4 = requests.get(f"{domain}api/line_login/1", headers={
+                                    "Content-Type": "application/json", "Authorization": authorization_token})
+            time.sleep(2)
+            data_json4 = response4.json()
+            if(len(data_json4['data']) > 0):
+                data_user = data_json4['data'][0];
+                print(f"login otp by: {data_user['user_login']}");
+                position_textbox_password = pyautogui.locateOnScreen(
+                        'pic/textbox_password.PNG')
+                pyautogui.moveTo(position_textbox_password)         
+                if position_textbox_password != None:
+                    pyautogui.click(position_textbox_password)
+                    time.sleep(1)
+        #               pyautogui.write(data_json2['data']['password'])
+                    pyperclip.copy(data_user['password'])
+                    pyautogui.hotkey('ctrl', 'v')
+                    time.sleep(1)
+
+                    pyautogui.hotkey('tab')
+                    time.sleep(1)
+        #                 pyautogui.write(data_json2['data']['user_login'])
+                    pyperclip.copy(data_user['user_login'])
+                    pyautogui.hotkey('ctrl', 'v')
+                    time.sleep(1)
+                position_textbox_btnlogin = pyautogui.locateOnScreen(
+                            'pic/btnlogin.PNG')
+                if(position_textbox_btnlogin != None):
+                    pyautogui.moveTo(position_textbox_btnlogin)
+                    pyautogui.click(position_textbox_btnlogin)
+                 #ถ้าให้ยืนยันตัวตน (ลบคอมเม้น)
+                time.sleep(3)
+                position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
+                if(position_otp != None ):
+                        #รอotp
+                        #saveรูปที่แคป
+                    now = datetime.now()
+                    timestamp = datetime.timestamp(now)
+                    name = str(int(timestamp));
+                    position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
+                    [left, top, width, height] = position_otp
+                    try:
+                        os.remove(data_json2['data']['image_screen_shot'])
+                    except Exception:
+                        pass
+                    myScreenshot = pyautogui.screenshot(region=(left, top, width, height+80));
+                    myScreenshot.save(r'service/screen_shot/'+name+'.png');
+                    time.sleep(0.5)
+
+
+                            #นำภาพไปเข้าเป็นbase64 แล้วอัพขึ้นเซิฟ
+                    ENCODING = 'utf-8';
+                    IMAGE_NAME = f'service/screen_shot/{name}.png';
+                    with open(IMAGE_NAME, 'rb') as open_file:
+                        byte_content = open_file.read()
+                    base64_bytes = b64encode(byte_content)
+                    base64_string = base64_bytes.decode(ENCODING)                  
+                    raw_data = base64_string                 
+                    json_data = dumps(raw_data, indent=2)
+                    requests.put(f"{domain}api/config/1", json=({"base64": json_data,"name":f"{name}.png"}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                    
+                    #line notify
+                    message_line = f"กำลังรอ OTP ของไอดี {data_user['user_login']}"
+                    line_response = requests.post(f"{domain}api/line_notify", headers={
+                                            "Content-Type": "application/json", "Authorization": authorization_token}, 
+                                                          json=({"message":message_line}))
+                    time.sleep(1)
+                    data_json_line = line_response.json()
+                    print(f"line notify status: {data_json_line}")
+                    time.sleep(3)
+                    position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
+
+                    while position_otp != None:
+                        position_otp = pyautogui.locateOnScreen('pic/otp.PNG')
+                        requests.put(f"{domain}api/config/1", json=({"action":1}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                        print("Waiting OTP")
+                        response4 = requests.get(f"{domain}api/line_login/1", headers={
+                                    "Content-Type": "application/json", "Authorization": authorization_token})
+                        time.sleep(2)
+                        data_json4 = response4.json()     
+                        if(len(data_json4['data']) <= 0):
+                            break;
+                        time.sleep(3)
+                        
+                    #เช็คล็อกอิน (ลบคอมเม้น)
+                time.sleep(3)
+                position_more = pyautogui.locateOnScreen('pic/more.PNG')
+                position_more2 = pyautogui.locateOnScreen('pic/more2.PNG')
+                lambda_click = lambda x: position_more2 if position_more == None else position_more
+                more_2click = lambda_click(position_more)
+                if(more_2click!=None):
+                    print("login otp success")
+                    requests.put(f"{domain}api/line_login_otp/{data_user['id']}", json=({"status":2}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                    requests.put(f"{domain}api/config/1", json=({"action":3}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                else:
+                    set_glob_fail_otp_to_one();
+                    print(f"login otp fail: {fail_otp}")
+                    if(fail_otp >= 2):
+                        requests.put(f"{domain}api/line_login_otp/{data_user['id']}", json=({"status":0}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                        set_glob_fail_otp_to_zero();
+                        
+                    requests.put(f"{domain}api/config/1", json=({"action":4}), headers={"Content-Type": "application/json","Authorization":authorization_token})
+                    
+#                     else:
+#                         requests.put(f"{domain}api/line_login_otp/{data_user['id']}", json=({"status":1}), headers={"Content-Type": "application/json","Authorization":authorization_token})                 
+#                         print("otp fail")
+                        
+                    #จบการทำงานของยืนยัน OTP
+                    
         time.sleep(1)
       
     
